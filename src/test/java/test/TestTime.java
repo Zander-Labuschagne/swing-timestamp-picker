@@ -36,19 +36,7 @@ public class TestTime extends JFrame {
         });
         JFormattedTextField editor = new JFormattedTextField();
         timePicker.setEditor(editor);
-        JButton change = new JButton("Use 12h");
-        change.addActionListener(e -> {
-            if (change.getText().equals("Use 24h")) {
-                change.setText("Use 12h");
-                timePicker.set24HourView(false);
-            } else {
-                change.setText("Use 24h");
-                timePicker.set24HourView(true);
-            }
-        });
         add(editor, "width 200");
-        add(change);
-        timePicker.setOrientation(SwingConstants.HORIZONTAL);
 
         // createThemeButton();
         //timePicker.setColor(new Color(20, 161, 108));

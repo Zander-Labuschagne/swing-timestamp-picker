@@ -2,205 +2,171 @@ package raven.datetime.component.time;
 
 import com.formdev.flatlaf.FlatClientProperties;
 import net.miginfocom.swing.MigLayout;
+import raven.datetime.component.time.PanelClock.SelectionView;
 
 import javax.swing.*;
+
 import java.awt.*;
 import java.awt.geom.Rectangle2D;
 import java.text.DecimalFormat;
 
-public class Header extends JComponent {
+public class Header extends JComponent
+{
 
-    private MigLayout layout;
-    private final EventHeaderChanged headerChanged;
-    private final DecimalFormat format = new DecimalFormat("00");
-    private boolean isAm;
+	private final EventHeaderChanged headerChanged;
+	private final DecimalFormat format = new DecimalFormat("00");
+	private final DecimalFormat msFormat = new DecimalFormat("000");
 
-    private Color color;
+	private Color color;
 
-    public void setOrientation(int orientation) {
-        String c = orientation == SwingConstants.VERTICAL ? "pos b1.x2+rel 0.5al n n" : "pos 0.5al b1.y2+rel n n";
-        amPmToolBar.setOrientation(orientation);
-        layout.setComponentConstraints(amPmToolBar, c);
-    }
+	private JToggleButton buttonHour;
+	private JToggleButton buttonMinute;
+	private JToggleButton buttonSecond;
+	private JToggleButton buttonMilliSecond;
 
+	private ButtonGroup group;
 
-    public void setHour(int hour) {
-        buttonHour.setText(format.format(hour));
-        if (amPmToolBar.isVisible()) {
-            if (!buttonAm.isSelected() && !buttonPm.isSelected()) {
-                buttonAm.setSelected(true);
-                setAm(true);
-            }
-        }
-    }
+	public void setHour(int hour) {
+		buttonHour.setText(format.format(hour));
+	}
 
-    public void setMinute(int minute) {
-        buttonMinute.setText(format.format(minute));
-    }
+	public void setMinute(int minute) {
+		buttonMinute.setText(format.format(minute));
+	}
 
-    public void setAm(boolean isAm) {
-        this.isAm = isAm;
-        if (isAm) {
-            buttonAm.setSelected(true);
-        } else {
-            buttonPm.setSelected(true);
-        }
-        headerChanged.amPmChanged(isAm);
-    }
+	public void setSecond(int second) {
+		buttonSecond.setText(format.format(second));
+	}
 
-    public void clearTime() {
-        group.clearSelection();
-        buttonHour.setText("--");
-        buttonMinute.setText("--");
-        buttonHour.setSelected(true);
-    }
+	public void setMilliSecond(int milliSecond) {
+		buttonMilliSecond.setText(msFormat.format(milliSecond));
+	}
 
-    public boolean isAm() {
-        return isAm;
-    }
+	public void clearTime() {
+		group.clearSelection();
+		buttonHour.setText("--");
+		buttonMinute.setText("--");
+		buttonSecond.setText("--");
+		buttonMilliSecond.setText("---");
+		buttonHour.setSelected(true);
+	}
 
-    public void setHourSelect(boolean isHour) {
-        if (isHour) {
-            buttonHour.setSelected(true);
-        } else {
-            buttonMinute.setSelected(true);
-        }
-    }
+	public void setSelectionView(SelectionView selectionView) {
+		switch (selectionView) {
+			case HOUR -> buttonHour.setSelected(true);
+			case MINUTE -> buttonMinute.setSelected(true);
+			case SECOND -> buttonSecond.setSelected(true);
+			case MILLISECOND -> buttonMilliSecond.setSelected(true);
+		}
+	}
 
-    public void setUse24hour(boolean use24hour) {
-        amPmToolBar.setVisible(!use24hour);
-    }
+	public Header(EventHeaderChanged headerChanged) {
+		this.headerChanged = headerChanged;
+		init();
+	}
 
-    public Header(EventHeaderChanged headerChanged) {
-        this.headerChanged = headerChanged;
-        init();
-    }
+	private void init() {
+		setOpaque(true);
+		MigLayout layout = new MigLayout("fill,insets 10", "center");
+		setLayout(layout);
+		add(createToolBar(), "id b1");
+	}
 
-    private void init() {
-        setOpaque(true);
-        layout = new MigLayout("fill,insets 10", "center");
-        setLayout(layout);
-        add(createToolBar(), "id b1");
-        add(createAmPm(), "pos b1.x2+rel 0.5al n n");
-    }
+	protected JToolBar createToolBar() {
+		JToolBar toolBar = new JToolBar();
+		toolBar.putClientProperty(FlatClientProperties.STYLE,
+				"background:null;" + "hoverButtonGroupBackground:null");
 
-    protected JToolBar createToolBar() {
-        JToolBar toolBar = new JToolBar();
-        toolBar.putClientProperty(FlatClientProperties.STYLE, "" +
-                "background:null;" +
-                "hoverButtonGroupBackground:null");
-        buttonHour = createButton();
-        buttonMinute = createButton();
-        ButtonGroup group = new ButtonGroup();
-        group.add(buttonHour);
-        group.add(buttonMinute);
-        buttonHour.setSelected(true);
-        buttonHour.addActionListener(e -> headerChanged.hourMinuteChanged(true));
-        buttonMinute.addActionListener(e -> headerChanged.hourMinuteChanged(false));
-        toolBar.add(buttonHour);
-        toolBar.add(createSplit());
-        toolBar.add(buttonMinute);
-        return toolBar;
-    }
+		buttonHour = createButton();
+		buttonMinute = createButton();
+		buttonSecond = createButton();
+		buttonMilliSecond = createButton();
 
-    protected JToggleButton createButton() {
-        JToggleButton button = new JToggleButton("--");
-        button.putClientProperty(FlatClientProperties.STYLE, "" +
-                "font:+15;" +
-                "toolbar.margin:3,5,3,5;" +
-                "foreground:contrast($Component.accentColor,$ToggleButton.background,#fff);" +
-                "background:null;" +
-                "toolbar.hoverBackground:null");
-        return button;
-    }
+		ButtonGroup group = new ButtonGroup();
+		group.add(buttonHour);
+		group.add(buttonMinute);
+		group.add(buttonSecond);
+		group.add(buttonMilliSecond);
+		buttonHour.setSelected(true);
 
-    protected JToggleButton createAmPmButton(String text) {
-        JToggleButton button = new JToggleButton(text);
-        button.addActionListener(e -> {
-            boolean am = text.equals("AM");
-            if (isAm != am) {
-                isAm = am;
-                headerChanged.amPmChanged(am);
-            }
-        });
-        button.putClientProperty(FlatClientProperties.STYLE, "" +
-                "font:+1;" +
-                "foreground:contrast($Component.accentColor,$ToggleButton.background,#fff);" +
-                "background:null;" +
-                "toolbar.hoverBackground:null");
-        return button;
-    }
+		buttonHour.addActionListener(e -> headerChanged.selectionViewChanged(SelectionView.HOUR));
+		buttonMinute.addActionListener(
+				e -> headerChanged.selectionViewChanged(SelectionView.MINUTE));
+		buttonSecond.addActionListener(
+				e -> headerChanged.selectionViewChanged(SelectionView.SECOND));
+		buttonMilliSecond.addActionListener(
+				e -> headerChanged.selectionViewChanged(SelectionView.MILLISECOND));
 
-    protected JLabel createSplit() {
-        JLabel label = new JLabel(":");
-        label.putClientProperty(FlatClientProperties.STYLE, "" +
-                "font:+10;" +
-                "foreground:contrast($Component.accentColor,$Label.background,#fff)");
-        return label;
-    }
+		toolBar.add(buttonHour);
+		toolBar.add(createSplit());
+		toolBar.add(buttonMinute);
+		toolBar.add(createSplit());
+		toolBar.add(buttonSecond);
+		toolBar.add(createMSSplit());
+		toolBar.add(buttonMilliSecond);
 
-    protected JToolBar createAmPm() {
-        amPmToolBar = new JToolBar();
-        amPmToolBar.setOrientation(SwingConstants.VERTICAL);
-        amPmToolBar.putClientProperty(FlatClientProperties.STYLE, "" +
-                "background:null;" +
-                "hoverButtonGroupBackground:null");
-        group = new ButtonGroup();
-        buttonAm = createAmPmButton("AM");
-        buttonPm = createAmPmButton("PM");
-        group.add(buttonAm);
-        group.add(buttonPm);
-        amPmToolBar.add(buttonAm);
-        amPmToolBar.add(buttonPm);
-        return amPmToolBar;
-    }
+		return toolBar;
+	}
 
-    /**
-     * Override this method to paint the background color
-     * Do not use the component background because the background reset while change themes
-     */
-    @Override
-    protected void paintComponent(Graphics g) {
-        Graphics2D g2 = (Graphics2D) g.create();
-        Color color = this.color;
-        if (color == null) {
-            color = UIManager.getColor("Component.accentColor");
-        }
-        g2.setColor(color);
-        g2.fill(new Rectangle2D.Double(0, 0, getWidth(), getHeight()));
-        g2.dispose();
-        super.paintComponent(g);
-    }
+	protected JToggleButton createButton() {
+		JToggleButton button = new JToggleButton("--");
+		button.putClientProperty(FlatClientProperties.STYLE,
+				"" + "font:+15;" + "toolbar.margin:3,5,3,5;"
+						+ "foreground:contrast($Component.accentColor,$ToggleButton.background,#fff);"
+						+ "background:null;" + "toolbar.hoverBackground:null");
+		return button;
+	}
 
-    public void setColor(Color color) {
-        this.color = color;
-    }
+	protected JLabel createSplit(String splitter) {
+		JLabel label = new JLabel(splitter);
+		label.putClientProperty(FlatClientProperties.STYLE, "" + "font:+10;"
+				+ "foreground:contrast($Component.accentColor,$Label.background,#fff)");
+		return label;
+	}
 
+	protected JLabel createSplit() {
+		return createSplit(":");
+	}
 
-    /**
-     * Override this method to return the background color to the JToolBar
-     * When JToolBar use null background, so it will paint the parent background.
-     */
-    @Override
-    public Color getBackground() {
-        if (color != null) {
-            return color;
-        }
-        return UIManager.getColor("Component.accentColor");
-    }
+	protected JLabel createMSSplit() {
+		return createSplit(".");
+	}
 
-    private JToggleButton buttonHour;
-    public JToggleButton buttonMinute;
+	/**
+	 * Override this method to paint the background color
+	 * Do not use the component background because the background reset while change themes
+	 */
+	@Override
+	protected void paintComponent(Graphics g) {
+		Graphics2D g2 = (Graphics2D) g.create();
+		Color color = this.color;
+		if (color == null) {
+			color = UIManager.getColor("Component.accentColor");
+		}
+		g2.setColor(color);
+		g2.fill(new Rectangle2D.Double(0, 0, getWidth(), getHeight()));
+		g2.dispose();
+		super.paintComponent(g);
+	}
 
-    public JToolBar amPmToolBar;
-    public ButtonGroup group;
-    public JToggleButton buttonAm;
-    private JToggleButton buttonPm;
+	public void setColor(Color color) {
+		this.color = color;
+	}
 
-    protected interface EventHeaderChanged {
+	/**
+	 * Override this method to return the background color to the JToolBar
+	 * When JToolBar use null background, so it will paint the parent background.
+	 */
+	@Override
+	public Color getBackground() {
+		if (color != null) {
+			return color;
+		}
+		return UIManager.getColor("Component.accentColor");
+	}
 
-        void hourMinuteChanged(boolean isHour);
-
-        void amPmChanged(boolean isAm);
-    }
+	protected interface EventHeaderChanged
+	{
+		void selectionViewChanged(SelectionView selectionView);
+	}
 }

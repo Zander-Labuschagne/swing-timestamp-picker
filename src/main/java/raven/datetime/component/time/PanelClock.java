@@ -7,406 +7,493 @@ import com.formdev.flatlaf.util.ColorFunctions;
 import com.formdev.flatlaf.util.UIScale;
 
 import javax.swing.*;
+
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.geom.*;
 
-public class PanelClock extends JPanel {
+public class PanelClock extends JPanel
+{
 
-    private final EventClockChanged clockChanged;
-    private boolean use24hour;
-    private boolean hourSelectionView = true;
-    private int hour = -1;
-    private int minute = -1;
+	public enum SelectionView
+	{
+		HOUR, MINUTE, SECOND, MILLISECOND
+	}
 
-    //  graphics option
-    private AnimationChange animationChange;
-    private final int margin12h = 20;
-    private final int margin24h = 50;
-    private Color color;
+	private final EventClockChanged clockChanged;
+	private SelectionView selectionView = SelectionView.HOUR;
+	private int hour = -1;
+	private int minute = -1;
+	private int second = -1;
+	private int milliSecond = -1;
 
-    //  public method
+	//  graphics option
+	private AnimationChange animationChange;
+	private static final int MARGIN_OUTER_CIRCLE = 20;
+	private static final int MARGIN_INNER_CIRCLE = 50;
+	private Color color;
 
-    public void setHourAndFix(int hour) {
-        if (!use24hour) {
-            if (hour == 0) {
-                hour = 12;
-            } else if (hour > 12) {
-                hour = hour - 12;
-            }
-        } else {
-            if (hour == 24) {
-                hour = 0;
-            }
-        }
-        setHour(hour);
-    }
+	//  public method
 
-    public void setHour(int hour) {
-        if (this.hour != hour) {
-            this.hour = hour;
-            if (hourSelectionView) {
-                animationChange.set(getAngleOf(hour, true), getTargetMargin());
-            }
-            clockChanged.hourChanged(hour);
-            repaint();
-        }
-    }
+	public void setHourAndFix(int hour) {
+		if (hour == 24) {
+			hour = 0;
+		}
+		setHour(hour);
+	}
 
-    public void setMinute(int minute) {
-        if (this.minute != minute) {
-            this.minute = minute;
-            if (!hourSelectionView) {
-                if (hour == -1) {
-                    setHour(12);
-                }
-                animationChange.set(getAngleOf(minute, false), getTargetMargin());
-            }
-            clockChanged.minuteChanged(minute);
-            repaint();
-        }
-    }
+	public void setHour(int hour) {
+		if (this.hour != hour) {
+			this.hour = hour;
+			if (selectionView == SelectionView.HOUR) {
+				animationChange.set(getAngleOf(hour, selectionView), getTargetMargin());
+			}
+			clockChanged.hourChanged(hour);
+			repaint();
+		}
+	}
 
-    public void setHourSelectionView(boolean hourSelectionView) {
-        if (this.hourSelectionView != hourSelectionView) {
-            this.hourSelectionView = hourSelectionView;
-            repaint();
-            runAnimation();
-        }
-    }
+	public void setMinute(int minute) {
+		if (this.minute != minute) {
+			this.minute = minute;
+			if (selectionView == SelectionView.MINUTE) {
+				if (hour == -1) {
+					setHour(12);
+				}
+				animationChange.set(getAngleOf(minute, selectionView), getTargetMargin());
+			}
+			clockChanged.minuteChanged(minute);
+			repaint();
+		}
+	}
 
-    public void setUse24hour(boolean use24hour, boolean isAm) {
-        if (this.use24hour != use24hour) {
-            this.use24hour = use24hour;
-            repaint();
-            if ((hourSelectionView && hour != -1) || (!hourSelectionView && minute != -1)) {
-                if (use24hour) {
-                    if (!isAm) {
-                        if (hour < 12) {
-                            setHourAndFix(hour + 12);
-                        }
-                    } else if (hour == 12) {
-                        setHourAndFix(0);
-                    }
-                } else {
-                    clockChanged.amPmChanged(hour < 12);
-                    if (hour == 0) {
-                        setHour(12);
-                    } else if (hour > 12) {
-                        setHour(hour - 12);
-                    }
-                }
-            }
-        }
-    }
+	public void setSecond(int second) {
+		if (this.second != second) {
+			this.second = second;
+			if (selectionView == SelectionView.SECOND) {
+				if (minute == -1) {
+					setMinute(60);
+				}
+				animationChange.set(getAngleOf(second, selectionView), getTargetMargin());
+			}
+			clockChanged.secondChanged(second);
+			repaint();
+		}
+	}
 
-    public boolean isUse24hour() {
-        return use24hour;
-    }
+	public void setMilliSecond(int milliSecond) {
+		if (this.milliSecond != milliSecond) {
+			this.milliSecond = milliSecond;
+			if (selectionView == SelectionView.MILLISECOND) {
+				if (second == -1) {
+					setSecond(60);
+				}
+				animationChange.set(getAngleOf(milliSecond, selectionView), getTargetMargin());
+			}
+			clockChanged.milliSecondChanged(milliSecond);
+			repaint();
+		}
+	}
 
-    public int getHour() {
-        return hour;
-    }
+	public void setSelectionView(SelectionView selectionView) {
+		if (this.selectionView != selectionView) {
+			this.selectionView = selectionView;
+			repaint();
+			runAnimation();
+		}
+	}
 
-    public int getMinute() {
-        return minute;
-    }
+	public int getHour() {
+		return hour;
+	}
 
-    public PanelClock(EventClockChanged clockChanged) {
-        this.clockChanged = clockChanged;
-        init();
-    }
+	public int getMinute() {
+		return minute;
+	}
 
-    private void init() {
-        animationChange = new AnimationChange(this);
-        putClientProperty(FlatClientProperties.STYLE, "" +
-                "border:5,15,5,15;" +
-                "background:null;" +
-                "foreground:contrast($Component.accentColor,$Panel.background,#fff)");
-        MouseAdapter mouseAdapter = new MouseAdapter() {
-            @Override
-            public void mousePressed(MouseEvent e) {
-                mouseChanged(e);
-            }
+	public int getSecond() {
+		return second;
+	}
 
-            @Override
-            public void mouseReleased(MouseEvent e) {
-                if (hourSelectionView) {
-                    hourSelectionView = false;
-                    clockChanged.hourMinuteChanged(false);
-                    runAnimation();
-                    repaint();
-                }
-            }
+	public int getMilliSecond() {
+		return milliSecond;
+	}
 
-            @Override
-            public void mouseDragged(MouseEvent e) {
-                mouseChanged(e);
-            }
+	public PanelClock(EventClockChanged clockChanged) {
+		this.clockChanged = clockChanged;
+		init();
+	}
 
-            private void mouseChanged(MouseEvent e) {
-                if (hourSelectionView) {
-                    int hour = getValueOf(e.getPoint(), hourSelectionView);
-                    setHour(hour);
-                } else {
-                    int minute = getValueOf(e.getPoint(), hourSelectionView);
-                    setMinute(minute);
-                }
-            }
-        };
-        addMouseListener(mouseAdapter);
-        addMouseMotionListener(mouseAdapter);
-    }
+	private void init() {
+		animationChange = new AnimationChange(this);
+		putClientProperty(FlatClientProperties.STYLE, "border:5,15,5,15;" + "background:null;"
+				+ "foreground:contrast($Component.accentColor,$Panel.background,#fff)");
+		MouseAdapter mouseAdapter = new MouseAdapter()
+		{
+			@Override
+			public void mousePressed(MouseEvent e) {
+				mouseChanged(e);
+			}
 
-    @Override
-    protected void paintComponent(Graphics g) {
-        super.paintComponent(g);
-        Graphics2D g2 = (Graphics2D) g.create();
-        FlatUIUtils.setRenderingHints(g2);
-        Insets insets = getInsets();
-        int width = getWidth() - (insets.left + insets.right);
-        int height = getHeight() - (insets.top + insets.bottom);
+			@Override
+			public void mouseReleased(MouseEvent e) {
+				switch (selectionView) {
+					case HOUR -> {
+						selectionView = SelectionView.MINUTE;
+						clockChanged.selectionViewChanged(SelectionView.MINUTE);
+						runAnimation();
+						repaint();
+					}
+					case MINUTE -> {
+						selectionView = SelectionView.SECOND;
+						clockChanged.selectionViewChanged(SelectionView.SECOND);
+						runAnimation();
+						repaint();
+					}
+					case SECOND -> {
+						selectionView = SelectionView.MILLISECOND;
+						clockChanged.selectionViewChanged(SelectionView.MILLISECOND);
+						runAnimation();
+						repaint();
+					}
+					default -> {
+						// Do nothing
+					}
+				}
+			}
 
-        int size = Math.min(width, height);
-        g2.translate(insets.left, insets.top);
-        int x = (width - size) / 2;
-        int y = (height - size) / 2;
+			@Override
+			public void mouseDragged(MouseEvent e) {
+				mouseChanged(e);
+			}
 
-        //  create clock background
-        g2.setColor(getClockBackground());
-        g2.fill(new Ellipse2D.Double(x, y, size, size));
+			private void mouseChanged(MouseEvent e) {
+				switch (selectionView) {
+					case HOUR:
+						int h = getValueOf(e.getPoint(), selectionView);
+						setHour(h);
+						break;
+					case MINUTE:
+						int m = getValueOf(e.getPoint(), selectionView);
+						setMinute(m);
+						break;
+					case SECOND:
+						int s = getValueOf(e.getPoint(), selectionView);
+						setSecond(s);
+						break;
+					case MILLISECOND:
+						int ms = getValueOf(e.getPoint(), selectionView);
+						setMilliSecond(ms);
+						break;
+				}
+			}
+		};
+		addMouseListener(mouseAdapter);
+		addMouseMotionListener(mouseAdapter);
+	}
 
-        //  create selection
-        paintSelection(g2, x, y, size);
+	@Override
+	protected void paintComponent(Graphics g) {
+		super.paintComponent(g);
+		Graphics2D g2 = (Graphics2D) g.create();
+		FlatUIUtils.setRenderingHints(g2);
+		Insets insets = getInsets();
+		int width = getWidth() - (insets.left + insets.right);
+		int height = getHeight() - (insets.top + insets.bottom);
 
-        //  create clock number
-        paintClockNumber(g2, x, y, size);
-        g2.dispose();
-    }
+		int size = Math.min(width, height);
+		g2.translate(insets.left, insets.top);
+		int x = (width - size) / 2;
+		int y = (height - size) / 2;
 
-    protected void paintSelection(Graphics2D g2, int x, int y, int size) {
-        AffineTransform tran = g2.getTransform();
-        size = size / 2;
-        final float margin = UIScale.scale(animationChange.getMargin());
-        float centerSize = UIScale.scale(8f);
-        float lineSize = UIScale.scale(3);
-        float selectSize = UIScale.scale(25f);
-        float unselectSize = UIScale.scale(4);
-        float lineHeight = size - margin;
-        Area area = new Area(new Ellipse2D.Float(x + size - (centerSize / 2), y + size - (centerSize / 2), centerSize, centerSize));
-        if ((hourSelectionView && hour != -1) || (!hourSelectionView && minute != -1)) {
-            area.add(new Area(new RoundRectangle2D.Float(x + size - (lineSize / 2), y + margin, lineSize, lineHeight, lineSize, lineSize)));
-            area.add(new Area(new Ellipse2D.Float(x + size - (selectSize / 2), y + margin - selectSize / 2, selectSize, selectSize)));
-            if (!hourSelectionView && !animationChange.isRunning() && (minute % 5 != 0)) {
-                area.subtract(new Area(new Ellipse2D.Float(x + size - (unselectSize / 2), y + margin - unselectSize / 2, unselectSize, unselectSize)));
-            }
-        }
-        g2.setColor(getSelectedColor());
-        float angle = animationChange.getAngle();
-        g2.rotate(Math.toRadians(angle), x + size, y + size);
-        g2.fill(area);
-        g2.setTransform(tran);
-    }
+		//  create clock background
+		g2.setColor(getClockBackground());
+		g2.fill(new Ellipse2D.Double(x, y, size, size));
 
-    protected void paintClockNumber(Graphics2D g2, int x, int y, int size) {
-        paintClockNumber(g2, x, y, size, margin12h, 0, hourSelectionView ? 1 : 5);
-        if (hourSelectionView && use24hour) {
-            paintClockNumber(g2, x, y, size, margin24h, 12, 1);
-        }
-    }
+		//  create selection
+		paintSelection(g2, x, y, size);
 
-    protected void paintClockNumber(Graphics2D g2, int x, int y, int size, int margin, int start, int add) {
-        final int mg = UIScale.scale(margin);
-        float center = size / 2f;
-        float angle = 360 / 12;
-        for (int i = 1; i <= 12; i++) {
-            float ag = angle * i - 90;
-            int num = fixHour((start + i * add), hourSelectionView);
-            float nx = (float) (center + (Math.cos(Math.toRadians(ag)) * (center - mg)));
-            float ny = (float) (center + (Math.sin(Math.toRadians(ag)) * (center - mg)));
-            paintNumber(g2, x + nx, y + ny, fixNumberAndToString(num), isSelected(num));
-        }
-    }
+		//  create clock number
+		paintClockNumber(g2, x, y, size);
+		g2.dispose();
+	}
 
-    protected void paintNumber(Graphics2D g2, float x, float y, String num, boolean isSelected) {
-        FontMetrics fm = g2.getFontMetrics();
-        Rectangle2D rec = fm.getStringBounds(num, g2);
-        x -= rec.getWidth() / 2;
-        y -= rec.getHeight() / 2;
-        if (isSelected) {
-            g2.setColor(getSelectedForeground());
-        } else {
-            g2.setColor(UIManager.getColor("Panel.foreground"));
-        }
-        g2.drawString(num, x, y + fm.getAscent());
-    }
+	protected void paintSelection(Graphics2D g2, int x, int y, int size) {
+		AffineTransform tran = g2.getTransform();
+		size = size / 2;
+		final float margin = UIScale.scale(animationChange.getMargin());
+		float centerSize = UIScale.scale(8f);
+		float lineSize = UIScale.scale(3);
+		float selectSize = UIScale.scale(25f);
+		float unselectSize = UIScale.scale(4);
+		float lineHeight = size - margin;
+		Area area = new Area(
+				new Ellipse2D.Float(x + size - (centerSize / 2), y + size - (centerSize / 2),
+						centerSize, centerSize));
+		if ((selectionView == SelectionView.HOUR && hour != -1) || (
+				selectionView == SelectionView.MINUTE && minute != -1) || (
+				selectionView == SelectionView.SECOND && second != -1) || (
+				selectionView == SelectionView.MILLISECOND && milliSecond != -1)) {
+			area.add(new Area(
+					new RoundRectangle2D.Float(x + size - (lineSize / 2), y + margin, lineSize,
+							lineHeight, lineSize, lineSize)));
+			area.add(new Area(
+					new Ellipse2D.Float(x + size - (selectSize / 2), y + margin - selectSize / 2,
+							selectSize, selectSize)));
+			if ((selectionView == SelectionView.MINUTE && !animationChange.isRunning() && (
+					minute % 5 != 0)) || (selectionView == SelectionView.SECOND
+					&& !animationChange.isRunning() && (second % 5 != 0)) || (
+					selectionView == SelectionView.MILLISECOND && !animationChange.isRunning() && (
+							milliSecond % 100 != 0))) {
+				area.subtract(new Area(new Ellipse2D.Float(x + size - (unselectSize / 2),
+						y + margin - unselectSize / 2, unselectSize, unselectSize)));
+			}
+		}
+		g2.setColor(getSelectedColor());
+		float angle = animationChange.getAngle();
+		g2.rotate(Math.toRadians(angle), x + size, y + size);
+		g2.fill(area);
+		g2.setTransform(tran);
+	}
 
-    protected Color getClockBackground() {
-        if (FlatLaf.isLafDark()) {
-            return ColorFunctions.lighten(getBackground(), 0.03f);
-        } else {
-            return ColorFunctions.darken(getBackground(), 0.03f);
-        }
-    }
+	protected void paintClockNumber(Graphics2D g2, int x, int y, int size) {
+		int increment = switch (selectionView) {
+			case HOUR -> 1;
+			case MINUTE, SECOND -> 5;
+			case MILLISECOND -> 100;
+		};
+		int sectors = switch (selectionView) {
+			case HOUR, MINUTE, SECOND -> 12;
+			case MILLISECOND -> 10;
+		};
+		paintClockNumber(g2, x, y, size, MARGIN_OUTER_CIRCLE, 0, increment, sectors);
+		if (selectionView == SelectionView.HOUR) {
+			paintClockNumber(g2, x, y, size, MARGIN_INNER_CIRCLE, 12, 1, sectors);
+		}
+	}
 
-    protected boolean isSelected(int num) {
-        if (hourSelectionView) {
-            return num == hour;
-        } else {
-            return num == minute;
-        }
-    }
+	protected void paintClockNumber(Graphics2D g2, int x, int y, int size, int margin, int start,
+			int add, int sectorCount) {
+		final int mg = UIScale.scale(margin);
+		float center = size / 2f;
+		float angle = 360f / sectorCount;
+		for (int i = 1; i <= sectorCount; i++) {
+			float ag = angle * i - 90;
+			int num = fixHour((start + i * add), selectionView);
+			float nx = (float) (center + (Math.cos(Math.toRadians(ag)) * (center - mg)));
+			float ny = (float) (center + (Math.sin(Math.toRadians(ag)) * (center - mg)));
+			paintNumber(g2, x + nx, y + ny, fixNumberAndToString(num), isSelected(num));
+		}
+	}
 
-    protected Color getSelectedColor() {
-        if (color != null) {
-            return color;
-        }
-        return UIManager.getColor("Component.accentColor");
-    }
+	protected void paintNumber(Graphics2D g2, float x, float y, String num, boolean isSelected) {
+		FontMetrics fm = g2.getFontMetrics();
+		Rectangle2D rec = fm.getStringBounds(num, g2);
+		x -= rec.getWidth() / 2f;
+		y -= rec.getHeight() / 2f;
+		if (isSelected) {
+			g2.setColor(getSelectedForeground());
+		}
+		else {
+			g2.setColor(UIManager.getColor("Panel.foreground"));
+		}
+		g2.drawString(num, x, y + fm.getAscent());
+	}
 
-    protected Color getSelectedForeground() {
-        return getForeground();
-    }
+	protected Color getClockBackground() {
+		if (FlatLaf.isLafDark()) {
+			return ColorFunctions.lighten(getBackground(), 0.03f);
+		}
+		else {
+			return ColorFunctions.darken(getBackground(), 0.03f);
+		}
+	}
 
-    /**
-     * Convert angle to hour or minute base on the hourView
-     * Return value hour or minute
-     */
-    private int getValueOf(float angle, boolean hourView) {
-        float ag = angle / 360;
-        int value = (int) (ag * (hourView ? 12 : 60));
-        if (hourView) {
-            return value == 0 ? 12 : value;
-        } else {
-            return value == 60 ? 0 : value;
-        }
-    }
+	protected boolean isSelected(int num) {
+		return switch (selectionView) {
+			case HOUR -> num == hour;
+			case MINUTE -> num == minute;
+			case SECOND -> num == second;
+			case MILLISECOND -> num == milliSecond;
+		};
+	}
 
-    /**
-     * Convert point location to the value hour or minute base on the hourView
-     * Return value hour or minute
-     */
-    private int getValueOf(Point point, boolean hourView) {
-        float angle = getAngleOf(point) + (hourView ? 360 / 12 / 2 : 360 / 60 / 2);
-        int value = getValueOf(angle, hourView);
-        if (hourView && use24hour && is24hourSelect(point)) {
-            return fixHour(value + 12, true);
-        } else {
-            return value;
-        }
-    }
+	protected Color getSelectedColor() {
+		if (color != null) {
+			return color;
+		}
+		return UIManager.getColor("Component.accentColor");
+	}
 
-    private boolean is24hourSelect(Point point) {
-        Insets insets = getInsets();
-        int width = getWidth() - (insets.left + insets.right);
-        int height = getHeight() - (insets.top + insets.bottom);
-        int size = Math.min(width, height) / 2;
-        int distanceTarget = (size - UIScale.scale(margin12h + 20));
-        float centerX = insets.left + size;
-        float centerY = insets.top + size;
-        double distance = Math.sqrt(Math.pow((point.x - centerX), 2) + Math.pow((point.y - centerY), 2));
-        return distance < distanceTarget;
-    }
+	protected Color getSelectedForeground() {
+		return getForeground();
+	}
 
-    /**
-     * Convert hour or minute to the angle base on the hourView
-     * Return angle vales
-     */
-    private float getAngleOf(int number, boolean hourView) {
-        float ag = 360 / (hourView ? 12 : 60);
-        return fixAngle(ag * number);
-    }
+	/**
+	 * Convert angle to hour or minute base on the hourView
+	 * Return value hour or minute
+	 */
+	private int getValueOf(float angle, SelectionView selectionView) {
+		int f = switch (selectionView) {
+			case HOUR -> 12;
+			case MINUTE, SECOND -> 60;
+			case MILLISECOND -> 1000;
+		};
 
-    /**
-     * Convert point location to angle
-     * Return angle
-     */
-    private float getAngleOf(Point point) {
-        Insets insets = getInsets();
-        int width = getWidth() - (insets.left + insets.right);
-        int height = getHeight() - (insets.top + insets.bottom);
-        float centerX = insets.left + width / 2;
-        float centerY = insets.top + height / 2;
-        float x = point.x - centerX;
-        float y = point.y - centerY;
-        double angle = Math.toDegrees(Math.atan2(y, x)) + 90;
-        if (angle < 0) {
-            angle += 360;
-        }
-        return (float) angle;
-    }
+		float ag = angle / 360;
+		int value = (int) (ag * f);
 
-    /**
-     * Make the angle is between 0 and 360-1
-     */
+		return switch (selectionView) {
+			case HOUR -> value == 0 ? 12 : value;
+			case MINUTE, SECOND -> value == 60 ? 0 : value;
+			case MILLISECOND -> value == 1000 ? 0 : value;
+		};
+	}
 
-    private float fixAngle(float angle) {
-        if (angle > 360) {
-            angle -= 360;
-        }
-        if (angle == 360) {
-            return 0;
-        }
-        return angle;
-    }
+	/**
+	 * Convert point location to the value hour or minute base on the {@code selectionView}
+	 * Return value hour, minute, second or millisecond.
+	 */
+	private int getValueOf(Point point, SelectionView selectionView) {
+		float f = switch (selectionView) {
+			case HOUR -> 360f / 12f / 2f;
+			case MINUTE, SECOND -> 360f / 60f / 2f;
+			case MILLISECOND -> 360f / 1000f / 2f;
+		};
 
-    /**
-     * Fix hour or minute base on the hourView
-     * If 24h ( return 0 to 23 )
-     * If 12h ( return 1 to 12 )
-     * If minute ( return 0 to 59 )
-     */
-    private int fixHour(int value, boolean hourView) {
-        if (hourView) {
-            if (use24hour) {
-                if (value == 24) {
-                    return 0;
-                }
-            }
-        } else {
-            if (value == 60) {
-                return 0;
-            }
-        }
-        return value;
-    }
+		float angle = getAngleOf(point) + f;
+		int value = getValueOf(angle, selectionView);
 
-    private String fixNumberAndToString(int num) {
-        if (num == 0) {
-            return "00";
-        }
-        return num + "";
-    }
+		if (selectionView == SelectionView.HOUR && is24hourSelect(point)) {
+			return fixHour(value + 12, SelectionView.HOUR);
+		}
+		else {
+			return value;
+		}
+	}
 
-    private boolean is24hour() {
-        return use24hour && (hour == 0 || hour > 12);
-    }
+	private boolean is24hourSelect(Point point) {
+		Insets insets = getInsets();
+		int width = getWidth() - (insets.left + insets.right);
+		int height = getHeight() - (insets.top + insets.bottom);
+		int size = Math.min(width, height) / 2;
+		int distanceTarget = (size - UIScale.scale(MARGIN_OUTER_CIRCLE + 20));
+		int centerX = insets.left + size;
+		int centerY = insets.top + size;
+		double distance = Math.sqrt(
+				Math.pow((point.x - centerX), 2) + Math.pow((point.y - centerY), 2));
+		return distance < distanceTarget;
+	}
 
-    private int getTargetMargin() {
-        return is24hour() && hourSelectionView ? margin24h : margin12h;
-    }
+	/**
+	 * Convert hour, minute, second or millisecond to the angle base on the hourView
+	 * Return angle vales
+	 */
+	private float getAngleOf(int number, SelectionView selectionView) {
+		float f = switch (selectionView) {
+			case HOUR -> 12f;
+			case MINUTE, SECOND -> 60f;
+			case MILLISECOND -> 1000f;
+		};
 
-    /**
-     * Start animation selection change
-     */
-    private void runAnimation() {
-        float angleTarget = getAngleOf(hourSelectionView ? hour : minute, hourSelectionView);
-        float marginTarget = getTargetMargin();
-        animationChange.start(angleTarget, marginTarget);
-    }
+		float ag = 360f / f;
+		return fixAngle(ag * number);
+	}
 
-    public void setColor(Color color) {
-        this.color = color;
-    }
+	/**
+	 * Convert point location to angle
+	 * Return angle
+	 */
+	private float getAngleOf(Point point) {
+		Insets insets = getInsets();
+		int width = getWidth() - (insets.left + insets.right);
+		int height = getHeight() - (insets.top + insets.bottom);
+		float centerX = insets.left + width / 2f;
+		float centerY = insets.top + height / 2f;
+		float x = point.x - centerX;
+		float y = point.y - centerY;
+		double angle = Math.toDegrees(Math.atan2(y, x)) + 90;
+		if (angle < 0) {
+			angle += 360;
+		}
+		return (float) angle;
+	}
 
-    protected interface EventClockChanged {
-        void hourChanged(int hour);
+	/**
+	 * Make the angle is between 0 and 360-1
+	 */
 
-        void minuteChanged(int minute);
+	private float fixAngle(float angle) {
+		if (angle > 360) {
+			angle -= 360;
+		}
+		if (angle == 360) {
+			return 0;
+		}
+		return angle;
+	}
 
-        void hourMinuteChanged(boolean isHour);
+	/**
+	 * Fix hour or minute base on the hourView
+	 * If hour ( return 0 to 23 )
+	 * If minute ( return 0 to 59 )
+	 * If second ( return 0 to 59 )
+	 * If millisecond ( return 0 to 999 )
+	 */
+	private int fixHour(int value, SelectionView selectionView) {
+		return switch (selectionView) {
+			case HOUR -> value == 24 ? 0 : value;
+			case MINUTE, SECOND -> value == 60 ? 0 : value;
+			case MILLISECOND -> value == 1000 ? 0 : value;
+		};
+	}
 
-        void amPmChanged(boolean isAm);
-    }
+	private String fixNumberAndToString(int num) {
+		return switch (selectionView) {
+			case HOUR, MINUTE, SECOND -> num == 0 ? "00" : num + "";
+			case MILLISECOND -> num == 0 ? "000" : num + "";
+		};
+	}
+
+	private boolean is24hour() {
+		return (hour == 0 || hour > 12);
+	}
+
+	private int getTargetMargin() {
+		return is24hour() && selectionView == SelectionView.HOUR ?
+				MARGIN_INNER_CIRCLE :
+				MARGIN_OUTER_CIRCLE;
+	}
+
+	/**
+	 * Start animation selection change
+	 */
+	private void runAnimation() {
+		float angleTarget = getAngleOf(switch (selectionView) {
+			case HOUR -> hour;
+			case MINUTE -> minute;
+			case SECOND -> second;
+			case MILLISECOND -> milliSecond;
+		}, selectionView);
+		float marginTarget = getTargetMargin();
+		animationChange.start(angleTarget, marginTarget);
+	}
+
+	public void setColor(Color color) {
+		this.color = color;
+	}
+
+	protected interface EventClockChanged
+	{
+		void hourChanged(int hour);
+
+		void minuteChanged(int minute);
+
+		void secondChanged(int second);
+
+		void milliSecondChanged(int milliSecond);
+
+		void selectionViewChanged(SelectionView selectionView);
+	}
 }
