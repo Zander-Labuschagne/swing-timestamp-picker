@@ -1,12 +1,15 @@
 # Swing Datetime Picker
 
+This datetime picker was forked from https://github.com/DJ-Raven/swing-datetime-picker and adapted with different requirements in mind. Mainly I needed it to allow the user to select seconds and milliseconds as well. This came at the cost of removing support for the 
+
+This project is forked from the [DJ-Raven project](https://github.com/DJ-Raven/swing-datetime-picker) with the added ability to select seconds and milliseconds on the
+time picker subcomponent. This came at the cost of removing the 24h, am/pm and orientation selection.
+
 A simple datetime picker implementation using Java Swing, built with the `flatlaf` UI library and `miglayout` for layout
 management.
 
 This project provides a datetime picker component that can be easily integrated into Java Swing applications. It
 leverages flatlaf for a modern look and miglayout for flexible and easy-to-use layout management.
-This project is forked from the DJ-Raven project with the added ability to select seconds and milliseconds on the
-time picker subcomponent, the 24h, am/pm and orientation selection has been removed for this to simplify things.
 
 <img src="https://github.com/DJ-Raven/swing-datetime-picker/blob/main/screenshot/timepicker-dark.png" alt="timepicker dark" width="300"/>
 &nbsp;
@@ -71,8 +74,6 @@ This project library do not available in maven central. so you can install with 
 | removeAllTimeSelectionListener()                         | `void`       | remove all event tiem selection                               |
 | setOrientation(int orientation)                          | `void`       | `SwingConstants.VERTICAL` or `SwingConstants.HORIZONTAL`      |
 | setEditor(JFormattedTextField editor)                    | `void`       | disply the selected time on the editor and allow to edit time |
-| set24HourView(boolean hour24)                            | `void`       | set time to 24h selection view                                |
-| is24HourView()                                           | `boolean`    | return `ture` is 24h selection view                           |
 | showPopup()                                              | `void`       | if time have editor, timepicker will show up with popup menu  |
 | closePopup()                                             | `void`       | close editor popup                                            |
 | setColor(Color color)                                    | `void`       | change base color                                             |
