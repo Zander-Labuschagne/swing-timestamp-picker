@@ -1,7 +1,5 @@
 # Swing Datetime Picker
 
-This datetime picker was forked from https://github.com/DJ-Raven/swing-datetime-picker and adapted with different requirements in mind. Mainly I needed it to allow the user to select seconds and milliseconds as well. This came at the cost of removing support for the 
-
 This project is forked from the [DJ-Raven project](https://github.com/DJ-Raven/swing-datetime-picker) with the added ability to select seconds and milliseconds on the
 time picker subcomponent. This came at the cost of removing the 24h, am/pm and orientation selection.
 
