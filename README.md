@@ -1,4 +1,4 @@
-# Swing Datetime Picker
+# Swing Timestamp Picker
 
 This project is forked from the [DJ-Raven project](https://github.com/DJ-Raven/swing-datetime-picker) with the added ability to select seconds and milliseconds on the
 time picker subcomponent. This came at the cost of removing the 24h, am/pm and orientation selection.
@@ -27,11 +27,11 @@ This project library do not available in maven central. so you can install with 
 
 ``` xml
 <dependency>
-    <groupId>raven.datetime</groupId>
-    <artifactId>swing-datetime-picker</artifactId>
-    <version>1.3.0</version>
+    <groupId>io.github.zander-labuschagne.datetime</groupId>
+    <artifactId>swing-timestamp-picker</artifactId>
+    <version>1.00.002</version>
     <scope>system</scope>
-    <systemPath>${basedir}/library/swing-datetime-picker-1.3.0.jar</systemPath>
+    <systemPath>${basedir}/library/swing-timestamp-picker-1.00.002.jar</systemPath>
 </dependency>
 ```
 
