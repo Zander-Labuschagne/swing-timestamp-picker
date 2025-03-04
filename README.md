@@ -10,13 +10,14 @@ management.
 This project provides a datetime picker component that can be easily integrated into Java Swing applications. It
 leverages flatlaf for a modern look and miglayout for flexible and easy-to-use layout management.
 
-<img src="https://github.com/DJ-Raven/swing-datetime-picker/blob/main/screenshot/timepicker-dark.png" alt="timepicker dark" width="300"/>
+<img src="https://github.com/Zander-Labuschagne/swing-timestamp-picker/blob/main/screenshot/timepicker-dark.png" 
+alt="timepicker dark" width="300"/>
 &nbsp;
-<img src="https://github.com/DJ-Raven/swing-datetime-picker/blob/main/screenshot/timepicker-light.png" alt="timepicker light" width="300"/>
+<img src="https://github.com/Zander-Labuschagne/swing-timestamp-picker/blob/main/screenshot/timepicker-light.png" alt="timepicker light" width="300"/>
 <br/>
-<img src="https://github.com/DJ-Raven/swing-datetime-picker/blob/main/screenshot/datepicker-dark.png" alt="datepicker dark" width="300"/>
+<img src="https://github.com/Zander-Labuschagne/swing-timestamp-picker/blob/main/screenshot/datepicker-dark.png" alt="datepicker dark" width="300"/>
 &nbsp;
-<img src="https://github.com/DJ-Raven/swing-datetime-picker/blob/main/screenshot/datepicker-light.png" alt="datepicker light" width="300"/>
+<img src="https://github.com/Zander-Labuschagne/swing-timestamp-picker/blob/main/screenshot/datepicker-light.png" alt="datepicker light" width="300"/>
 
 ## Installation
 
