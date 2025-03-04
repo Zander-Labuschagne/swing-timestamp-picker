@@ -1,6 +1,8 @@
 package test;
 
+import com.formdev.flatlaf.FlatDarkLaf;
 import com.formdev.flatlaf.FlatLaf;
+import com.formdev.flatlaf.FlatLightLaf;
 import com.formdev.flatlaf.extras.FlatAnimatedLafChange;
 import com.formdev.flatlaf.fonts.roboto.FlatRobotoFont;
 import com.formdev.flatlaf.themes.FlatMacDarkLaf;
@@ -23,15 +25,12 @@ public class TestTime extends JFrame {
         setLocationRelativeTo(null);
         setLayout(new MigLayout());
         TimePicker timePicker = new TimePicker();
-        timePicker.addTimeSelectionListener(new TimeSelectionListener() {
-            @Override
-            public void timeSelected(TimeEvent timeEvent) {
-                if (timePicker.isTimeSelected()) {
-                    DateTimeFormatter df = DateTimeFormatter.ofPattern("hh:mm a");
-                    System.out.println("event selected : " + timePicker.getSelectedTime().format(df));
-                } else {
-                    System.out.println("event selected : null");
-                }
+        timePicker.addTimeSelectionListener(timeEvent -> {
+            if (timePicker.isTimeSelected()) {
+                DateTimeFormatter df = DateTimeFormatter.ofPattern("hh:mm:ss.SSS");
+                System.out.println("event selected : " + timePicker.getSelectedTime().format(df));
+            } else {
+                System.out.println("event selected : null");
             }
         });
         JFormattedTextField editor = new JFormattedTextField();
@@ -69,7 +68,7 @@ public class TestTime extends JFrame {
         FlatRobotoFont.install();
         FlatLaf.registerCustomDefaultsSource("themes");
         UIManager.put("defaultFont", new Font(FlatRobotoFont.FAMILY, Font.PLAIN, 13));
-        FlatMacDarkLaf.setup();
+        FlatLightLaf.setup();
         EventQueue.invokeLater(() -> new TestTime().setVisible(true));
     }
 }

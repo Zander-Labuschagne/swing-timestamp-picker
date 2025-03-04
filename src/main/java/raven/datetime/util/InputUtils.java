@@ -65,7 +65,7 @@ public class InputUtils extends MaskFormatter
 	public static void useTimeInput(JFormattedTextField txt, boolean use24h,
 			ValueCallback callback) {
 		try {
-			TimeInputFormat mask = new TimeInputFormat(use24h ? "##:##" : "##:## ??", use24h);
+			TimeInputFormat mask = new TimeInputFormat("##:##:##.###");
 			OldEditorProperty oldEditorProperty = initEditor(txt, mask, callback);
 
 			PropertyChangeListener propertyChangeListener = evt -> callback.valueChanged(
@@ -100,9 +100,9 @@ public class InputUtils extends MaskFormatter
 		}
 	}
 
-	public static void changeTimeFormatted(JFormattedTextField txt, boolean use24h) {
+	public static void changeTimeFormatted(JFormattedTextField txt) {
 		try {
-			TimeInputFormat mask = new TimeInputFormat(use24h ? "##:##" : "##:## ??", use24h);
+			TimeInputFormat mask = new TimeInputFormat("##:##:##.###");
 			mask.setCommitsOnValidEdit(true);
 			mask.setPlaceholderCharacter('-');
 			DefaultFormatterFactory df = new DefaultFormatterFactory(mask);
@@ -174,11 +174,8 @@ public class InputUtils extends MaskFormatter
 	private static class TimeInputFormat extends MaskFormatter
 	{
 
-		private final boolean use24h;
-
-		public TimeInputFormat(String mark, boolean use24h) throws ParseException {
+		public TimeInputFormat(String mark) throws ParseException {
 			super(mark);
-			this.use24h = use24h;
 		}
 
 		@Override
@@ -188,7 +185,7 @@ public class InputUtils extends MaskFormatter
 		}
 
 		public void checkTime(String value) throws ParseException {
-			DateFormat df = new SimpleDateFormat(use24h ? "HH:mm" : "hh:mm aa");
+			DateFormat df = new SimpleDateFormat("HH:mm:ss.SSS");
 			df.setLenient(false);
 			df.parse(value);
 		}
