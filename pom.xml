@@ -6,7 +6,7 @@
 
     <groupId>io.github.zander-labuschagne.datetime</groupId>
     <artifactId>swing-timestamp-picker</artifactId>
-    <version>1.00.002</version>
+    <version>1.00.003</version>
 
     <properties>
         <maven.compiler.source>1.8</maven.compiler.source>
